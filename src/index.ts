@@ -1,11 +1,15 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
+import { prisma } from "./database.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 // Home route - HTML
 app.get("/", (req, res) => {
@@ -37,11 +41,28 @@ app.get("/about", function (req, res) {
 });
 
 // Example API endpoint - JSON
-app.get("/api-data", (req, res) => {
-  res.json({
-    message: "Here is some sample API data",
-    items: ["apple", "banana", "cherry"],
-  });
+app.get("/api/user", async (req, res) => {
+  const users = await prisma.user.findMany();
+  res.json(users);
+});
+
+app.post("/api/user", async (req, res) => {
+  const { email, name } = req.body;
+  if (email || name)
+    return res.json({
+      message: "Email and name is needed!",
+    });
+  try {
+    const newUser = await prisma.user.create({
+      data: {
+        email,
+        name,
+      },
+    });
+    res.json(newUser);
+  } catch (error: any) {
+    res.json({ message: error.message });
+  }
 });
 
 // Health check
