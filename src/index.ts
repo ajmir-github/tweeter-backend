@@ -42,8 +42,12 @@ app.get("/about", function (req, res) {
 
 // Example API endpoint - JSON
 app.get("/api/user", async (req, res) => {
-  const users = await prisma.user.findMany();
-  res.json(users);
+  try {
+    const users = await prisma.user.findMany();
+    res.json(users);
+  } catch (error: any) {
+    res.json({ message: error.message });
+  }
 });
 
 app.post("/api/user", async (req, res) => {
